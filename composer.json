@@ -39,9 +39,6 @@
   "extra": {
     "hyperf": {
       "config": "Hyperf\\Nacos\\ConfigProvider"
-    },
-    "branch-alias": {
-      "dev-master": "*"
     }
   }
 }
