@@ -3,6 +3,8 @@
 namespace Hyperf\Nacos\Lib;
 
 use Hyperf\Nacos\Model\InstanceModel;
+use Hyperf\Nacos\Model\ServiceModel;
+use Hyperf\Utils\Arr;
 
 class NacosInstance extends AbstractNacos
 {
@@ -23,9 +25,14 @@ class NacosInstance extends AbstractNacos
         return $this->request('PUT', "/nacos/v1/ns/instance?{$instanceModel}") == 'ok';
     }
 
-    public function list($serviceName, $groupName = null, $namespaceId = null, array $clusters = [], $healthyOnly = null)
+    public function list(ServiceModel $serviceModel, array $clusters = [], $healthyOnly = null)
     {
-        $params = array_filter(compact('serviceName', 'groupName', 'namespaceId', 'clusters', 'healthyOnly'));
+        $serviceName = $serviceModel->serviceName;
+        $groupName = $serviceModel->groupName;
+        $namespaceId = $serviceModel->namespaceId;
+        $params = array_filter(compact('serviceName', 'groupName', 'namespaceId', 'clusters', 'healthyOnly'), function ($item) {
+            return $item !== null;
+        });
         if (isset($params['clusters'])) {
             $params['clusters'] = implode(',', $params['clusters']);
         }
@@ -34,18 +41,39 @@ class NacosInstance extends AbstractNacos
         return $this->request('GET', "/nacos/v1/ns/instance/list?{$params_str}");
     }
 
+    public function getOptimal(ServiceModel $serviceModel, array $clusters = [])
+    {
+        $list = $this->list($serviceModel, $clusters, true);
+        $instance = $list['hosts'] ?? [];
+        if (!$instance) {
+            return false;
+        }
+        $enabled = array_filter($instance, function ($item) {
+            return $item['enabled'];
+        });
+
+        return current(Arr::sort($enabled, function ($each) {
+            return $each['weight'];
+        }));
+    }
+
     public function detail(InstanceModel $instanceModel)
     {
         return $this->request('GET', "/nacos/v1/ns/instance?{$instanceModel}");
     }
 
-    public function beat($serviceName, InstanceModel $instanceModel, $groupName = null, $ephemeral = null)
+    public function beat(ServiceModel $serviceModel, InstanceModel $instanceModel)
     {
-        $params = array_filter(compact('serviceName', 'beat', 'groupName', 'ephemeral'));
+        $serviceName = $serviceModel->serviceName;
+        $groupName = $serviceModel->groupName;
+        $ephemeral = $instanceModel->ephemeral;
+        $params = array_filter(compact('serviceName', 'beat', 'groupName', 'ephemeral'), function ($item) {
+            return $item !== null;
+        });
         $params['beat'] = $instanceModel->toJson();
         $params_str = http_build_query($params);
 
-        return $this->request('PUT', "/nacos/v1/ns/instance/beat?{$params_str}");
+        return $this->request('PUT', "/nacos/v1/ns/instance/beat?{$params_str}") == 'ok';
     }
 
     public function upHealth(InstanceModel $instanceModel)
