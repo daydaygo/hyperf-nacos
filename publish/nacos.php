@@ -25,6 +25,7 @@ return [
         'ephemeral' => true,
         'beatEnable' => true,
         'beatInterval' => 5,
+        'namespaceId' => 'namespace_id', // 注意此处必须和service保持一致
     ],
     // 配置刷新间隔
     'configReloadInterval' => 3,
