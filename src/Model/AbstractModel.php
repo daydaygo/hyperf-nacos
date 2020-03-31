@@ -17,7 +17,9 @@ abstract class AbstractModel
 
     public function getParams()
     {
-        $params = array_filter(get_object_vars($this));
+        $params = array_filter(get_object_vars($this), function ($item) {
+            return $item !== null;
+        });
         unset($params['required_field']);
         $intersect = array_intersect(array_keys($params), $this->required_field);
         sort($this->required_field);

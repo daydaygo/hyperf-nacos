@@ -52,9 +52,7 @@ class NacosInstance extends AbstractNacos
             return $item['enabled'];
         });
 
-        return current(Arr::sort($enabled, function ($each) {
-            return $each['weight'];
-        }));
+        return $enabled[mt_rand(0, count($enabled))];
     }
 
     public function detail(InstanceModel $instanceModel)
@@ -73,7 +71,7 @@ class NacosInstance extends AbstractNacos
         $params['beat'] = $instanceModel->toJson();
         $params_str = http_build_query($params);
 
-        return $this->request('PUT', "/nacos/v1/ns/instance/beat?{$params_str}") == 'ok';
+        return $this->request('PUT', "/nacos/v1/ns/instance/beat?{$params_str}");
     }
 
     public function upHealth(InstanceModel $instanceModel)
