@@ -2,6 +2,11 @@
 
 namespace Hyperf\Nacos\Lib;
 
+use Hyperf\LoadBalancer\Node;
+use Hyperf\LoadBalancer\Random;
+use Hyperf\LoadBalancer\RoundRobin;
+use Hyperf\LoadBalancer\WeightedRandom;
+use Hyperf\LoadBalancer\WeightedRoundRobin;
 use Hyperf\Nacos\Model\InstanceModel;
 use Hyperf\Nacos\Model\ServiceModel;
 use Hyperf\Utils\Arr;
@@ -52,7 +57,40 @@ class NacosInstance extends AbstractNacos
             return $item['enabled'];
         });
 
-        return $enabled[mt_rand(0, count($enabled))];
+        $tactics = strtolower(config('nacos.loadBalancer', 'random'));
+
+        return $this->loadBalancer($enabled, $tactics);
+    }
+
+    protected function loadBalancer($nodes, $tactics = 'random')
+    {
+        $load_nodes = [];
+        $nacos_nodes = [];
+        /** @var InstanceModel $node */
+        foreach ($nodes as $node) {
+            $load_nodes[] = new Node($node['ip'], $node['port'], $node['weight']);
+            $nacos_nodes["{$node['ip']}:{$node['port']}"] = $node;
+        }
+
+        switch ($tactics) {
+            case 'roundrobin':
+                $loader = new RoundRobin($load_nodes);
+                break;
+            case 'weightedrandom':
+                $loader = new WeightedRandom($load_nodes);
+                break;
+            case 'weightedroundrobin':
+                $loader = new WeightedRoundRobin($load_nodes);
+                break;
+            default:
+                $loader = new Random($load_nodes);
+                break;
+        }
+
+        /** @var Node $select */
+        $select = $loader->select();
+
+        return $nacos_nodes["{$select->host}:{$select->port}"];
     }
 
     public function detail(InstanceModel $instanceModel)

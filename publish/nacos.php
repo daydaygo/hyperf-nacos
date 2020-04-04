@@ -44,4 +44,6 @@ return [
             'type' => 'yml',
         ],
     ],
+    // 负载策略 random, RoundRobin, WeightedRandom, WeightedRoundRobin
+    'loadBalancer' => 'random'
 ];
