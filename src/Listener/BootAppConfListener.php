@@ -27,17 +27,6 @@ class BootAppConfListener implements ListenerInterface
         }
         $logger = container(LoggerFactory::class)->get('nacos');
 
-        // 注册实例
-        /** @var ThisInstance $instance */
-        $instance = make(ThisInstance::class);
-        /** @var NacosInstance $nacos_instance */
-        $nacos_instance = make(NacosInstance::class);
-        if (!$nacos_instance->register($instance)) {
-            throw new \Exception("nacos register instance fail: {$instance}");
-        } else {
-            $logger->info('nacos register instance success!', compact('instance'));
-        }
-
         // 注册服务
         /** @var NacosService $nacos_service */
         $nacos_service = container(NacosService::class);
@@ -47,7 +36,18 @@ class BootAppConfListener implements ListenerInterface
         if (!$exist && !$nacos_service->create($service)) {
             throw new \Exception("nacos register service fail: {$service}");
         } else {
-            $logger->info('nacos register service success!', compact('instance'));
+            $logger->info('nacos register service success!', compact('service'));
+        }
+
+        // 注册实例
+        /** @var ThisInstance $instance */
+        $instance = make(ThisInstance::class);
+        /** @var NacosInstance $nacos_instance */
+        $nacos_instance = make(NacosInstance::class);
+        if (!$nacos_instance->register($instance)) {
+            throw new \Exception("nacos register instance fail: {$instance}");
+        } else {
+            $logger->info('nacos register instance success!', compact('instance'));
         }
 
         $remote_config = RemoteConfig::get();

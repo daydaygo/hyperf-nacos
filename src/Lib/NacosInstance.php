@@ -103,7 +103,7 @@ class NacosInstance extends AbstractNacos
         $serviceName = $serviceModel->serviceName;
         $groupName = $serviceModel->groupName;
         $ephemeral = $instanceModel->ephemeral;
-        $params = array_filter(compact('serviceName', 'beat', 'groupName', 'ephemeral'), function ($item) {
+        $params = array_filter(compact('serviceName', 'groupName', 'ephemeral'), function ($item) {
             return $item !== null;
         });
         $params['beat'] = $instanceModel->toJson();
