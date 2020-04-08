@@ -1,2 +1,14 @@
-vendor
-composer.lock
+.buildpath
+.settings/
+.project
+*.patch
+.idea/
+.git/
+runtime/
+codeCoverage/
+vendor/
+.phpintel/
+.env
+.DS_Store
+*.lock
+node_modules/*
